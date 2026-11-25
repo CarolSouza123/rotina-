@@ -1,0 +1,49 @@
+name: Gerar APK Android (Rotina Leve)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Baixar arquivos do repositório
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 3. Configurar Java 17 (necessário para Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 4. Instalar dependências do Capacitor
+        run: npm install
+
+      - name: 5. Criar projeto Android nativo e adicionar permissões
+        run: |
+          npx cap add android
+          npx cap sync android
+
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          sed -i 's/<uses-permission android:name="android.permission.INTERNET" \/>/<uses-permission android:name="android.permission.INTERNET" \/>\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" \/>\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" \/>\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" \/>\n    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" \/>\n    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" \/>/' "$MANIFEST"
+          sed -i 's/xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android"/xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android" xmlns:tools="http:\/\/schemas.android.com\/tools"/' "$MANIFEST"
+
+      - name: 6. Compilar o arquivo APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: 7. Disponibilizar APK para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rotina-Leve-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
