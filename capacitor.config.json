@@ -1,0 +1,14 @@
+{
+  "appId": "com.rotinaleve.microtarefas",
+  "appName": "Rotina Leve",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "iconColor": "#dc2626"
+    }
+  }
+}
