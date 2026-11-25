@@ -1,0 +1,2341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#FAF7F2" />
+  <title>Rotina Leve • Microtarefas & Foco</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['Nunito', 'sans-serif'],
+          },
+          colors: {
+            cream: {
+              50: '#FDFBF7',
+              100: '#FAF7F2',
+              200: '#F3ECE1',
+              300: '#E6DCCB',
+            },
+            sage: {
+              50: '#F2F7F4',
+              100: '#E1EDE6',
+              200: '#C3DBCE',
+              500: '#4D8B6F',
+              600: '#3D735A',
+              700: '#315C49',
+            },
+            terracotta: {
+              50: '#FDF4F1',
+              100: '#FAE5DE',
+              500: '#D96B43',
+              600: '#C05630',
+            },
+            amberwarm: {
+              50: '#FFFBEB',
+              100: '#FEF3C7',
+              300: '#FCD34D',
+              500: '#F59E0B',
+              600: '#D97706',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #FAF7F2;
+      color: #292524;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overscroll-behavior-y: none;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .pencil-strike-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .pencil-strike-svg {
+      position: absolute;
+      left: -3px;
+      top: 50%;
+      width: calc(100% + 6px);
+      height: 14px;
+      transform: translateY(-50%);
+      pointer-events: none;
+      overflow: visible;
+    }
+    .pencil-path-1 {
+      stroke-dasharray: 420;
+      stroke-dashoffset: 420;
+      animation: drawPencil 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .pencil-path-2 {
+      stroke-dasharray: 420;
+      stroke-dashoffset: 420;
+      animation: drawPencil 0.36s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards;
+    }
+    .pencil-done-static .pencil-path-1,
+    .pencil-done-static .pencil-path-2 {
+      stroke-dashoffset: 0;
+      animation: none;
+    }
+
+    @keyframes drawPencil {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes checkPop {
+      0% { transform: scale(0.8); }
+      50% { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+    .check-pop {
+      animation: checkPop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes sirenBeacon {
+      0%, 100% {
+        transform: scale(1) rotate(-4deg);
+        filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.45));
+      }
+      50% {
+        transform: scale(1.13) rotate(4deg);
+        filter: drop-shadow(0 0 14px rgba(239, 68, 68, 0.9));
+      }
+    }
+    .siren-beacon {
+      animation: sirenBeacon 1.35s ease-in-out infinite;
+    }
+
+    @keyframes sirenCardGlow {
+      0%, 100% {
+        box-shadow: 0 4px 18px -2px rgba(220, 38, 38, 0.16);
+        border-color: rgba(239, 68, 68, 0.45);
+      }
+      50% {
+        box-shadow: 0 6px 24px -1px rgba(220, 38, 38, 0.32);
+        border-color: rgba(220, 38, 38, 0.85);
+      }
+    }
+    .siren-card-glow {
+      animation: sirenCardGlow 1.8s ease-in-out infinite;
+    }
+
+    @keyframes slideBannerDown {
+      0% { transform: translateY(-110%); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .silent-popup-enter {
+      animation: slideBannerDown 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .confetti-piece {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: confettiFall 0.95s ease-out forwards;
+    }
+    @keyframes confettiFall {
+      0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) rotate(320deg) scale(0.5); opacity: 0; }
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-28 selection:bg-sage-200">
+
+  <!-- BANNER POP-UP SILENCIOSO -->
+  <div id="silentNotificationBanner" class="fixed top-3 inset-x-3 z-50 hidden max-w-md mx-auto">
+    <div class="silent-popup-enter bg-stone-900/95 backdrop-blur-md text-white rounded-2xl p-3.5 shadow-2xl border border-red-500/50 flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl bg-red-500/20 border border-red-400/40 flex items-center justify-center shrink-0 siren-beacon">
+        <svg class="w-6 h-6 text-red-400" viewBox="0 0 24 24" fill="none">
+          <path d="M7 18V11C7 8.23858 9.23858 6 12 6C14.7614 6 17 8.23858 17 11V18" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="2"/>
+          <rect x="5" y="18" width="14" height="3" rx="1.5" fill="currentColor"/>
+          <path d="M12 2V3.5M4.5 5.5L5.8 6.8M19.5 5.5L18.2 6.8M2.5 12H4.2M19.8 12H21.5" stroke="#FCA5A5" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-red-300 bg-red-500/20 px-1.5 py-0.5 rounded">Aviso Silencioso • 30 min antes</span>
+        </div>
+        <p id="silentBannerText" class="text-sm font-bold text-white leading-snug mt-0.5 truncate">
+          Você não pode esquecer de: Botar o feijão
+        </p>
+      </div>
+      <button type="button" onclick="dismissSilentBanner()" class="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold text-white shrink-0">
+        Ok
+      </button>
+    </div>
+  </div>
+
+  <!-- HEADER GAMIFICADO -->
+  <header class="sticky top-0 z-30 bg-cream-100/90 backdrop-blur-md border-b border-cream-300/80">
+    <div class="max-w-md mx-auto px-4 pt-3.5 pb-3">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-display font-extrabold text-xl text-stone-800 tracking-tight">Rotina Leve</h1>
+            <span id="levelBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amberwarm-100 text-amberwarm-600 border border-amberwarm-300/70">
+              ⭐ Nível 1
+            </span>
+          </div>
+          <p id="headerSubtitle" class="text-xs text-stone-500 mt-0.5">Um passo leve de cada vez</p>
+        </div>
+
+        <button type="button" onclick="openTimerSetupModal()" title="Cronômetro Silencioso"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-sage-100 hover:bg-sage-200/80 text-sage-800 border border-sage-200 text-xs font-bold transition active:scale-95">
+          <i data-lucide="timer" class="w-3.5 h-3.5 text-sage-700"></i>
+          <span>Focar</span>
+        </button>
+
+        <button type="button" onclick="openGuestModeModal()" title="Modo Visita Chegando! (30 min)"
+          class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-terracotta-100 hover:bg-terracotta-500 hover:text-white text-terracotta-600 border border-terracotta-500/30 text-xs font-extrabold transition active:scale-95">
+          <span>🏃‍♀️</span>
+          <span class="hidden xs:inline">Visita!</span>
+        </button>
+
+        <button type="button" id="cloudAccountBtn" onclick="openCloudModal()" title="Salvar Progresso na Nuvem"
+          class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-cream-200 hover:bg-cream-300 text-stone-700 border border-cream-300 text-xs font-bold transition active:scale-95">
+          <i data-lucide="cloud" class="w-3.5 h-3.5 text-stone-500" id="cloudStatusIcon"></i>
+          <span class="hidden sm:inline" id="cloudBtnLabel">Nuvem</span>
+        </button>
+      </div>
+
+      <!-- Barra de Progresso -->
+      <div class="mt-3 bg-white/80 rounded-2xl p-2.5 border border-cream-300/80 shadow-2xs">
+        <div class="flex items-center justify-between text-xs mb-1.5">
+          <span id="progressLabel" class="font-bold text-stone-700">0 de 0 microtarefas hoje</span>
+          <span id="starsCounter" class="font-extrabold text-amberwarm-600">0 ⭐</span>
+        </div>
+        <div class="w-full h-2.5 bg-cream-200 rounded-full overflow-hidden">
+          <div id="progressBarFill" class="h-full bg-gradient-to-r from-sage-500 to-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Abas Principais -->
+      <div class="grid grid-cols-3 gap-1.5 mt-3 bg-cream-200/80 p-1 rounded-2xl">
+        <button type="button" onclick="switchTab('hoje')" id="tab-hoje"
+          class="tab-btn py-2 px-2 rounded-xl text-xs font-extrabold transition bg-white text-stone-800 shadow-2xs">
+          Hoje <span id="tabHojeCount" class="ml-0.5 text-[11px] text-sage-600"></span>
+        </button>
+        <button type="button" onclick="switchTab('meudia')" id="tab-meudia"
+          class="tab-btn py-2 px-2 rounded-xl text-xs font-bold transition text-stone-600 hover:text-stone-800">
+          Meu Dia <span id="tabMeuDiaCount" class="ml-0.5 text-[11px] text-emerald-600"></span>
+        </button>
+        <button type="button" onclick="switchTab('ritmo')" id="tab-ritmo"
+          class="tab-btn py-2 px-2 rounded-xl text-xs font-bold transition text-stone-600 hover:text-stone-800">
+          Ritmo & Tela
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="max-w-md mx-auto px-4 pt-3 space-y-4">
+
+    <!-- ABA 1: ROTINA DE HOJE + SIRENE VERMELHA SILENCIOSA -->
+    <section id="view-hoje" class="space-y-3.5">
+      <div id="guestModeActiveBanner" class="hidden"></div>
+      <div id="sirenAlertContainer" class="hidden"></div>
+      <div id="contextFilterBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5"></div>
+      <div id="taskListContainer" class="space-y-2.5"></div>
+    </section>
+
+    <!-- ABA 2: MEU DIA (O QUE EU JÁ FIZ HOJE) -->
+    <section id="view-meudia" class="hidden space-y-4">
+      <div id="dailySummaryHero" class="bg-gradient-to-br from-sage-600 to-sage-700 text-white rounded-3xl p-5 shadow-md"></div>
+
+      <div class="bg-white rounded-2xl p-3.5 border border-cream-300 shadow-2xs">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-extrabold text-stone-700 flex items-center gap-1.5">
+            <span>⚡</span> Fiz agora e nem tinha anotado:
+          </span>
+          <span class="text-[11px] text-stone-400">+10 ⭐</span>
+        </div>
+        <div id="quickDoneChips" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <h2 class="font-display font-extrabold text-sm text-stone-800">Conquistas riscadas hoje</h2>
+          <span id="completedTotalBadge" class="text-xs font-bold text-sage-700 bg-sage-100 px-2.5 py-0.5 rounded-full">0 feitas</span>
+        </div>
+        <div id="completedHistoryList" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- ABA 3: RITMO & TELA -->
+    <section id="view-ritmo" class="hidden space-y-4">
+      <div id="yesterdayComparisonCard"></div>
+
+      <!-- Escudo Anti-Reels -->
+      <div class="bg-white rounded-3xl p-4 border border-cream-300 shadow-2xs space-y-3.5">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-terracotta-100 text-terracotta-600 flex items-center justify-center shrink-0">
+              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="font-display font-extrabold text-sm text-stone-800">Escudo Anti-Reels (Acumulado)</h3>
+              <p class="text-xs text-stone-500">15 min: aviso • 30 min no dia: sacolejo na tela</p>
+            </div>
+          </div>
+          <span id="socialTotalTodayBadge" class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-cream-200 text-stone-700">
+            0 min hoje
+          </span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-1.5 bg-cream-100 p-1 rounded-2xl border border-cream-300/70">
+          <button type="button" onclick="selectSocialApp('instagram')" id="social-btn-instagram"
+            class="social-app-btn py-2 px-2 rounded-xl text-xs font-extrabold bg-white text-stone-800 shadow-2xs transition">
+            📸 Instagram
+          </button>
+          <button type="button" onclick="selectSocialApp('facebook')" id="social-btn-facebook"
+            class="social-app-btn py-2 px-2 rounded-xl text-xs font-bold text-stone-500 transition">
+            📘 Facebook
+          </button>
+          <button type="button" onclick="selectSocialApp('tiktok')" id="social-btn-tiktok"
+            class="social-app-btn py-2 px-2 rounded-xl text-xs font-bold text-stone-500 transition">
+            🎵 TikTok
+          </button>
+        </div>
+
+        <div id="socialGuardPanel" class="bg-cream-100 rounded-2xl p-3.5 border border-cream-300/80 space-y-3"></div>
+
+        <p class="text-[11px] text-stone-400 leading-relaxed">
+          * No Android nativo (APK), ele soma o tempo total mesmo se você fechar e abrir o app de novo. Aqui você pode testar tanto o aviso de 15 min quanto a tela de sacolejo dos 30 min.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MINI PLAYER FLUTUANTE DO CRONÔMETRO SILENCIOSO -->
+  <div id="floatingTimerBar" class="fixed bottom-20 inset-x-4 z-30 hidden max-w-md mx-auto">
+    <div onclick="openTimerRunningModal()"
+      class="cursor-pointer bg-stone-900 text-white rounded-2xl px-4 py-2.5 shadow-xl border border-stone-700 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <div class="truncate">
+          <p class="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Cronômetro silencioso ativo</p>
+          <p id="miniTimerTaskTitle" class="text-xs font-bold truncate">Focando...</p>
+        </div>
+      </div>
+      <span id="miniTimerClock" class="font-mono font-extrabold text-sm text-emerald-300 shrink-0">00:00</span>
+    </div>
+  </div>
+
+  <!-- BARRA INFERIOR FIXA -->
+  <div class="fixed bottom-0 inset-x-0 z-30 bg-cream-100/95 backdrop-blur-md border-t border-cream-300 px-4 py-3">
+    <div class="max-w-md mx-auto flex items-center gap-2.5">
+      <button type="button" onclick="openQuickDoneModal()"
+        class="px-3.5 py-3 rounded-2xl bg-sage-100 hover:bg-sage-200 text-sage-800 font-extrabold text-xs flex items-center gap-1.5 transition active:scale-95 shrink-0 border border-sage-200">
+        <i data-lucide="sparkles" class="w-4 h-4 text-sage-600"></i>
+        <span>Já fiz!</span>
+      </button>
+
+      <button type="button" onclick="openNewTaskModal()"
+        class="flex-1 py-3 px-4 rounded-2xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-extrabold text-sm shadow-md shadow-terracotta-500/20 flex items-center justify-center gap-2 transition active:scale-95">
+        <i data-lucide="plus" class="w-5 h-5"></i>
+        <span>Nova microtarefa</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 1: NOVA / EDITAR MICROTAREFA -->
+  <div id="taskModal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-stone-900/45 backdrop-blur-xs p-0 sm:p-4">
+    <div class="bg-cream-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-cream-300 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="taskModalTitle" class="font-display font-extrabold text-lg text-stone-800">Nova microtarefa</h3>
+        <button type="button" onclick="closeModal('taskModal')" class="p-2 rounded-xl bg-cream-200 text-stone-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="taskForm" onsubmit="saveTaskFromModal(event)" class="space-y-4">
+        <input type="hidden" id="editTaskId" value="" />
+
+        <div>
+          <label class="block text-xs font-extrabold text-stone-700 mb-1.5">O que precisa ser feito?</label>
+          <input type="text" id="taskTitleInput" required placeholder="Ex: Botar o feijão para cozinhar"
+            class="w-full px-3.5 py-3 rounded-2xl bg-white border border-cream-300 text-sm font-medium text-stone-800 focus:outline-none focus:border-sage-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-extrabold text-stone-700 mb-1.5">Nível de atenção / urgência</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="priority" value="urgent" class="peer sr-only" />
+              <div class="py-2.5 px-2 rounded-2xl border border-cream-300 bg-white text-center text-xs font-bold text-stone-600 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-700 transition">
+                🚨 Urgente
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="priority" value="important" class="peer sr-only" checked />
+              <div class="py-2.5 px-2 rounded-2xl border border-cream-300 bg-white text-center text-xs font-bold text-stone-600 peer-checked:bg-amberwarm-50 peer-checked:border-amberwarm-500 peer-checked:text-amberwarm-700 transition">
+                🟡 Importante
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="priority" value="normal" class="peer sr-only" />
+              <div class="py-2.5 px-2 rounded-2xl border border-cream-300 bg-white text-center text-xs font-bold text-stone-600 peer-checked:bg-sage-50 peer-checked:border-sage-500 peer-checked:text-sage-700 transition">
+                🌿 Leve
+              </div>
+            </label>
+          </div>
+          <p class="text-[11px] text-stone-500 mt-1">Tarefas <b>Urgentes</b> acendem a sirene vermelha silenciosa no topo.</p>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-extrabold text-stone-700">Quando fazer?</label>
+            <button type="button" onclick="openCustomContextModal()" class="text-[11px] font-bold text-sage-700 hover:underline">
+              + Criar momento
+            </button>
+          </div>
+          <select id="taskContextSelect" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-cream-300 text-sm font-semibold text-stone-700 focus:outline-none focus:border-sage-500"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 bg-white p-3 rounded-2xl border border-cream-300">
+          <div>
+            <label class="block text-[11px] font-bold text-stone-600 mb-1">Data</label>
+            <input type="date" id="taskDateInput"
+              class="w-full px-2.5 py-2 rounded-xl bg-cream-100 border border-cream-300 text-xs font-bold text-stone-700" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-stone-600 mb-1">Horário (aviso 30m antes)</label>
+            <input type="time" id="taskTimeInput"
+              class="w-full px-2.5 py-2 rounded-xl bg-cream-100 border border-cream-300 text-xs font-bold text-stone-700" />
+          </div>
+        </div>
+
+        <button type="submit"
+          class="w-full py-3.5 rounded-2xl bg-sage-600 hover:bg-sage-700 text-white font-extrabold text-sm shadow-md transition active:scale-98">
+          Salvar microtarefa
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ADIAR TAREFA (ESTILO AGENDA DENTRO DO APP) -->
+  <div id="postponeModal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-stone-900/45 backdrop-blur-xs p-0 sm:p-4">
+    <div class="bg-cream-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-cream-300 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-terracotta-600">Reagendar sem culpa</span>
+          <h3 id="postponeTaskTitle" class="font-display font-extrabold text-base text-stone-800 truncate max-w-[270px]">Tarefa</h3>
+        </div>
+        <button type="button" onclick="closeModal('postponeModal')" class="p-2 rounded-xl bg-cream-200 text-stone-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="postponeTaskId" value="" />
+
+      <div>
+        <p class="text-xs font-extrabold text-stone-600 mb-2">Atalhos rápidos:</p>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="quickPostponePreset('afternoon')"
+            class="py-2.5 px-2 rounded-2xl bg-white hover:bg-amberwarm-50 border border-cream-300 text-xs font-bold text-stone-700 text-center transition active:scale-95">
+            ☀️ Hoje de tarde
+          </button>
+          <button type="button" onclick="quickPostponePreset('helena_sleep')"
+            class="py-2.5 px-2 rounded-2xl bg-white hover:bg-sage-50 border border-cream-300 text-xs font-bold text-stone-700 text-center transition active:scale-95">
+            😴 Helena dormir
+          </button>
+          <button type="button" onclick="quickPostponePreset('tomorrow')"
+            class="py-2.5 px-2 rounded-2xl bg-white hover:bg-terracotta-50 border border-cream-300 text-xs font-bold text-stone-700 text-center transition active:scale-95">
+            📅 Para amanhã
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-3.5 border border-cream-300 space-y-3">
+        <p class="text-xs font-extrabold text-stone-700 flex items-center gap-1.5">
+          <i data-lucide="calendar-clock" class="w-4 h-4 text-sage-600"></i>
+          <span>Ou escolha dia e horário exatos:</span>
+        </p>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[11px] font-bold text-stone-500 mb-1">Nova data</label>
+            <input type="date" id="postponeDateInput"
+              class="w-full px-3 py-2.5 rounded-xl bg-cream-100 border border-cream-300 text-xs font-extrabold text-stone-800" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-stone-500 mb-1">Novo horário</label>
+            <input type="time" id="postponeTimeInput"
+              class="w-full px-3 py-2.5 rounded-xl bg-cream-100 border border-cream-300 text-xs font-extrabold text-stone-800" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-stone-500 mb-1">Momento do dia</label>
+          <select id="postponeContextSelect"
+            class="w-full px-3 py-2 rounded-xl bg-cream-100 border border-cream-300 text-xs font-bold text-stone-700"></select>
+        </div>
+      </div>
+
+      <button type="button" onclick="applyPostponeFromModal()"
+        class="w-full py-3.5 rounded-2xl bg-sage-600 hover:bg-sage-700 text-white font-extrabold text-sm shadow-md transition active:scale-98">
+        Confirmar novo horário
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 3: INICIAR CRONÔMETRO SILENCIOSO -->
+  <div id="timerSetupModal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-stone-900/45 backdrop-blur-xs p-0 sm:p-4">
+    <div class="bg-cream-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-cream-300 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-sage-700">100% Silencioso (Zero bipe)</span>
+          <h3 class="font-display font-extrabold text-lg text-stone-800">Cronômetro de Foco</h3>
+        </div>
+        <button type="button" onclick="closeModal('timerSetupModal')" class="p-2 rounded-xl bg-cream-200 text-stone-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div>
+        <label class="block text-xs font-extrabold text-stone-700 mb-1">O que você vai fazer agora?</label>
+        <input type="text" id="timerTaskNameInput" placeholder="Ex: Esvaziar a cuba da pia"
+          class="w-full px-3.5 py-3 rounded-2xl bg-white border border-cream-300 text-sm font-medium text-stone-800" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-extrabold text-stone-700 mb-1.5">Meta de tempo (continua no negativo sem apitar)</label>
+        <div class="grid grid-cols-4 gap-2">
+          <button type="button" onclick="startSilentTimer(5)" class="py-2.5 rounded-xl bg-white border border-cream-300 font-extrabold text-xs text-stone-700 hover:border-sage-500">5 min</button>
+          <button type="button" onclick="startSilentTimer(10)" class="py-2.5 rounded-xl bg-white border border-cream-300 font-extrabold text-xs text-stone-700 hover:border-sage-500">10 min</button>
+          <button type="button" onclick="startSilentTimer(15)" class="py-2.5 rounded-xl bg-white border border-cream-300 font-extrabold text-xs text-stone-700 hover:border-sage-500">15 min</button>
+          <button type="button" onclick="startSilentTimer(0)" class="py-2.5 rounded-xl bg-sage-600 text-white font-extrabold text-xs">Livre</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CRONÔMETRO RODANDO -->
+  <div id="timerRunningModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
+    <div class="bg-cream-50 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-cream-300 text-center space-y-5">
+      <div class="flex items-center justify-between">
+        <span class="px-2.5 py-1 rounded-full bg-sage-100 text-sage-700 text-[11px] font-extrabold">🔇 Modo Silencioso</span>
+        <button type="button" onclick="closeModal('timerRunningModal')" class="text-xs font-bold text-stone-500 hover:text-stone-800">
+          Minimizar ↓
+        </button>
+      </div>
+
+      <div>
+        <p class="text-xs text-stone-500">Focando em:</p>
+        <h3 id="runningTimerTitle" class="font-display font-extrabold text-lg text-stone-800 mt-0.5">Esvaziar a pia</h3>
+      </div>
+
+      <div id="runningTimerDisplayBox" class="py-6 rounded-3xl bg-white border border-cream-300">
+        <div id="runningTimerClock" class="font-mono font-extrabold text-5xl text-stone-800 tracking-tight">00:00</div>
+        <p id="runningTimerSubLabel" class="text-xs font-bold text-stone-400 mt-2">Contando sem som</p>
+      </div>
+
+      <div class="flex gap-2.5">
+        <button type="button" onclick="cancelSilentTimer()"
+          class="flex-1 py-3 rounded-2xl bg-cream-200 text-stone-700 font-bold text-xs">
+          Cancelar
+        </button>
+        <button type="button" onclick="finishSilentTimer()"
+          class="flex-2 py-3 px-5 rounded-2xl bg-sage-600 hover:bg-sage-700 text-white font-extrabold text-xs shadow-md">
+          ✓ Concluir (+15 ⭐)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MODO VISITA CHEGANDO -->
+  <div id="guestModeModal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-stone-900/50 backdrop-blur-xs p-0 sm:p-4">
+    <div class="bg-cream-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-cream-300 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🏃‍♀️</span>
+          <div>
+            <h3 class="font-display font-extrabold text-lg text-stone-800">Modo Visita Chegando!</h3>
+            <p class="text-xs text-stone-500">Sprint turbo de 30 min silencioso • +15 ⭐ por tarefa</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('guestModeModal')" class="p-2 rounded-xl bg-cream-200 text-stone-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="bg-terracotta-50 border border-terracotta-500/25 rounded-2xl p-3.5 text-xs text-stone-700 leading-relaxed">
+        Sabe aquela energia mágica quando alguém avisa que tá chegando em meia hora? Ative o sprint de <b>30 minutos</b> para dar aquela geral rápida no que aparece mais!
+      </div>
+
+      <div>
+        <p class="text-xs font-extrabold text-stone-700 mb-2">Quer adicionar alvos relâmpago na lista agora?</p>
+        <div id="guestModeChecklist" class="space-y-1.5"></div>
+      </div>
+
+      <button type="button" onclick="activateGuestMode()"
+        class="w-full py-3.5 rounded-2xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-extrabold text-sm shadow-md transition active:scale-98">
+        🚀 Ativar Sprint de 30 minutos!
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL NOVO MOMENTO PERSONALIZADO -->
+  <div id="customContextModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4">
+    <div class="bg-cream-50 w-full max-w-xs rounded-3xl p-5 shadow-xl border border-cream-300 space-y-3.5">
+      <h3 class="font-display font-extrabold text-base text-stone-800">Novo momento do dia</h3>
+      <form onsubmit="saveCustomContext(event)" class="space-y-3">
+        <input type="text" id="customContextName" required placeholder="Ex: Depois da soneca da tarde"
+          class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-cream-300 text-sm" />
+        <div class="flex gap-2">
+          <button type="button" onclick="closeModal('customContextModal')" class="flex-1 py-2.5 rounded-xl bg-cream-200 text-stone-700 font-bold text-xs">
+            Cancelar
+          </button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-sage-600 text-white font-bold text-xs">
+            Adicionar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL SOBREPOSIÇÃO: SACOLEJO ANTI-REELS (30 MIN ACUMULADOS) -->
+  <div id="reelsShakeOverlayModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-stone-950/85 backdrop-blur-md p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border-2 border-red-400 text-center space-y-4">
+      <div class="w-16 h-16 mx-auto rounded-3xl bg-red-100 text-red-600 flex items-center justify-center text-3xl animate-bounce">
+        🛑
+      </div>
+
+      <div class="space-y-1.5">
+        <span id="shakeOverlayBadge" class="inline-block px-3 py-1 rounded-full bg-red-100 text-red-700 text-[11px] font-extrabold uppercase tracking-wider">
+          30 min acumulados hoje • Instagram
+        </span>
+        <h3 id="shakeOverlayTitle" class="font-display font-extrabold text-xl text-stone-900 leading-snug pt-1">
+          Você já perdeu 30 minutos no Instagram.
+        </h3>
+        <p class="text-sm font-bold text-stone-700">
+          Você sente que esse tempo foi útil?
+        </p>
+      </div>
+
+      <div id="shakeOverlayButtons" class="grid grid-cols-2 gap-2.5 pt-2">
+        <button type="button" onclick="answerReelsShake(true)"
+          class="py-3.5 px-3 rounded-2xl bg-sage-100 hover:bg-sage-200 text-sage-800 border border-sage-300 font-extrabold text-xs transition active:scale-95">
+          Sim, foi útil
+        </button>
+        <button type="button" onclick="answerReelsShake(false)"
+          class="py-3.5 px-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs shadow-md transition active:scale-95">
+          Não, só rolei
+        </button>
+      </div>
+
+      <div id="shakeOverlayFeedback" class="hidden pt-1 space-y-3"></div>
+    </div>
+  </div>
+
+  <!-- TOAST FLUTUANTE COM BOTÃO DESFAZER -->
+  <div id="toastContainer" class="fixed top-20 inset-x-0 z-50 flex justify-center pointer-events-none px-4"></div>
+
+  <!-- MODAL CONTA NUVEM PRIVADA (E-MAIL E SENHA) -->
+  <div id="cloudAccountModal" class="fixed inset-0 z-[65] hidden items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4">
+    <div class="bg-cream-50 w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-cream-300 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-sage-100 text-sage-700 flex items-center justify-center">
+            <i data-lucide="cloud" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-display font-extrabold text-base text-stone-800">Backup na Nuvem</h3>
+            <p class="text-[11px] text-stone-500">Salva seu progresso fora do celular</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('cloudAccountModal')" class="p-1.5 rounded-xl bg-cream-200 text-stone-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div id="cloudLoggedInView" class="hidden space-y-3">
+        <div class="bg-sage-50 border border-sage-200 rounded-2xl p-3.5 space-y-1">
+          <div class="flex items-center gap-1.5 text-sage-800 font-extrabold text-xs">
+            <span class="w-2 h-2 rounded-full bg-sage-500 animate-pulse"></span>
+            <span>Sincronização Ativa</span>
+          </div>
+          <p id="cloudUserEmailText" class="text-xs text-stone-700 font-medium break-all"></p>
+          <p id="cloudLastSyncText" class="text-[10px] text-stone-500 pt-1">Seus dados estão protegidos na sua gaveta privada.</p>
+        </div>
+
+        <button type="button" onclick="forceSyncNow()"
+          class="w-full py-2.5 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-bold text-xs transition">
+          Sincronizar agora
+        </button>
+
+        <button type="button" onclick="logoutCloudAccount()"
+          class="w-full py-2 rounded-xl bg-cream-200 hover:bg-red-100 hover:text-red-700 text-stone-600 font-bold text-xs transition">
+          Sair da conta
+        </button>
+      </div>
+
+      <form id="cloudAuthForm" onsubmit="handleCloudAuthSubmit(event)" class="space-y-3">
+        <p class="text-xs text-stone-600 leading-relaxed">
+          Entre com seu e-mail para guardar suas microtarefas e estrelas na nuvem (não altera sua Agenda nem Tarefas do Google).
+        </p>
+
+        <div>
+          <label class="block text-[11px] font-bold text-stone-600 mb-1">Seu E-mail</label>
+          <input type="email" id="cloudEmailInput" required placeholder="voce@exemplo.com"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-300 text-sm text-stone-800 focus:outline-none focus:border-sage-500">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-stone-600 mb-1">Senha (mín. 6 caracteres)</label>
+          <input type="password" id="cloudPasswordInput" required minlength="6" placeholder="••••••"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-300 text-sm text-stone-800 focus:outline-none focus:border-sage-500">
+        </div>
+
+        <p id="cloudAuthError" class="hidden text-[11px] font-bold text-red-600 bg-red-50 border border-red-200 rounded-xl p-2.5"></p>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="submit" data-mode="login" onclick="window._cloudAuthMode='login'"
+            class="py-2.5 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-extrabold text-xs transition">
+            Entrar
+          </button>
+          <button type="submit" data-mode="register" onclick="window._cloudAuthMode='register'"
+            class="py-2.5 rounded-xl bg-cream-200 hover:bg-cream-300 text-stone-800 font-extrabold text-xs transition">
+            Criar Conta
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SDK FIREBASE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const FIREBASE_CONFIG = {
+      apiKey: "COLE_SUA_API_KEY_AQUI",
+      authDomain: "COLE_SEU_AUTH_DOMAIN_AQUI",
+      projectId: "COLE_SEU_PROJECT_ID_AQUI",
+      storageBucket: "COLE_SEU_STORAGE_BUCKET_AQUI",
+      messagingSenderId: "COLE_SEU_SENDER_ID_AQUI",
+      appId: "COLE_SEU_APP_ID_AQUI"
+    };
+
+    let fbAuth = null;
+    let fbDb = null;
+    let currentCloudUser = null;
+    let syncDebounceTimer = null;
+
+    function isFirebaseConfigured() {
+      return FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith("COLE_");
+    }
+
+    if (isFirebaseConfigured()) {
+      try {
+        const app = initializeApp(FIREBASE_CONFIG);
+        fbAuth = getAuth(app);
+        fbDb = getFirestore(app);
+
+        onAuthStateChanged(fbAuth, async (user) => {
+          currentCloudUser = user;
+          updateCloudUI();
+          if (user) {
+            await pullDataFromCloud(user.uid);
+          }
+        });
+      } catch (e) {
+        console.warn("Erro ao iniciar Firebase:", e);
+      }
+    }
+
+    function updateCloudUI() {
+      const iconEl = document.getElementById('cloudStatusIcon');
+      const labelEl = document.getElementById('cloudBtnLabel');
+      const loggedInView = document.getElementById('cloudLoggedInView');
+      const authForm = document.getElementById('cloudAuthForm');
+      const emailText = document.getElementById('cloudUserEmailText');
+
+      if (!iconEl || !labelEl) return;
+
+      if (currentCloudUser) {
+        iconEl.classList.remove('text-stone-500');
+        iconEl.classList.add('text-sage-600');
+        labelEl.textContent = 'Salvo';
+        if (loggedInView && authForm && emailText) {
+          loggedInView.classList.remove('hidden');
+          authForm.classList.add('hidden');
+          emailText.textContent = currentCloudUser.email;
+        }
+      } else {
+        iconEl.classList.add('text-stone-500');
+        iconEl.classList.remove('text-sage-600');
+        labelEl.textContent = 'Nuvem';
+        if (loggedInView && authForm) {
+          loggedInView.classList.add('hidden');
+          authForm.classList.remove('hidden');
+        }
+      }
+    }
+
+    async function pullDataFromCloud(uid) {
+      if (!fbDb || !uid) return;
+      try {
+        const docRef = doc(fbDb, "usuarios_rotina", uid);
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const cloudPayload = snap.data();
+          if (cloudPayload && cloudPayload.appState) {
+            localStorage.setItem('rotina_leve_mvp_v3', JSON.stringify(cloudPayload.appState));
+            if (cloudPayload.socialState) {
+              localStorage.setItem('rotina_leve_social_daily_v1', JSON.stringify(cloudPayload.socialState));
+            }
+            if (typeof window.reloadAppFromStorage === 'function') {
+              window.reloadAppFromStorage();
+            }
+            const lastSync = document.getElementById('cloudLastSyncText');
+            if (lastSync) lastSync.textContent = 'Dados carregados da nuvem agora mesmo!';
+          }
+        } else {
+          await pushDataToCloud();
+        }
+      } catch (err) {
+        console.warn("Erro ao buscar dados da nuvem:", err);
+      }
+    }
+
+    async function pushDataToCloud() {
+      if (!fbDb || !currentCloudUser) return;
+      try {
+        const rawApp = localStorage.getItem('rotina_leve_mvp_v3');
+        const rawSocial = localStorage.getItem('rotina_leve_social_daily_v1');
+        if (!rawApp) return;
+
+        const docRef = doc(fbDb, "usuarios_rotina", currentCloudUser.uid);
+        await setDoc(docRef, {
+          appState: JSON.parse(rawApp),
+          socialState: rawSocial ? JSON.parse(rawSocial) : null,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        const lastSync = document.getElementById('cloudLastSyncText');
+        if (lastSync) {
+          const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          lastSync.textContent = `Último backup automático hoje às ${nowTime}.`;
+        }
+      } catch (err) {
+        console.warn("Erro ao salvar na nuvem:", err);
+      }
+    }
+
+    window.scheduleCloudBackup = function() {
+      if (!currentCloudUser) return;
+      clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(() => {
+        pushDataToCloud();
+      }, 1500);
+    };
+
+    window.openCloudModal = function() {
+      updateCloudUI();
+      const errBox = document.getElementById('cloudAuthError');
+      if (errBox) errBox.classList.add('hidden');
+      const modal = document.getElementById('cloudAccountModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    };
+
+    window.handleCloudAuthSubmit = async function(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('cloudAuthError');
+      errBox.classList.add('hidden');
+
+      if (!isFirebaseConfigured() || !fbAuth) {
+        errBox.textContent = "As chaves do Firebase ainda não foram coladas no arquivo www/index.html.";
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      const email = document.getElementById('cloudEmailInput').value.trim();
+      const pass = document.getElementById('cloudPasswordInput').value;
+      const mode = window._cloudAuthMode || 'login';
+
+      try {
+        if (mode === 'register') {
+          await createUserWithEmailAndPassword(fbAuth, email, pass);
+        } else {
+          await signInWithEmailAndPassword(fbAuth, email, pass);
+        }
+        closeModal('cloudAccountModal');
+        if (typeof showToast === 'function') {
+          showToast('☁️ Conta conectada! Seu progresso agora salva na nuvem.');
+        }
+      } catch (err) {
+        let msg = "Não foi possível conectar. Verifique e-mail e senha.";
+        if (err.code === 'auth/email-already-in-use') msg = "Este e-mail já tem conta. Clique em 'Entrar'.";
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') msg = "E-mail ou senha incorretos.";
+        if (err.code === 'auth/weak-password') msg = "Use uma senha com pelo menos 6 caracteres.";
+        errBox.textContent = msg;
+        errBox.classList.remove('hidden');
+      }
+    };
+
+    window.forceSyncNow = async function() {
+      await pushDataToCloud();
+      if (typeof showToast === 'function') showToast('☁️ Backup concluído!');
+    };
+
+    window.logoutCloudAccount = async function() {
+      if (fbAuth) await signOut(fbAuth);
+      closeModal('cloudAccountModal');
+      if (typeof showToast === 'function') showToast('Você saiu da conta na nuvem.');
+    };
+  </script>
+
+  <script>
+    const DEFAULT_CONTEXTS = [
+      { id: 'all', label: 'Tudo', emoji: '✨' },
+      { id: 'before_coffee', label: 'Antes do café', emoji: '☕' },
+      { id: 'after_coffee', label: 'Depois do café', emoji: '🌤️' },
+      { id: 'helena_sleeping', label: 'Helena dormindo', emoji: '😴' },
+      { id: 'helena_awake', label: 'Helena acordada', emoji: '🧸' },
+      { id: 'afternoon', label: 'De tarde', emoji: '🌇' },
+      { id: 'tomorrow', label: 'Amanhã', emoji: '📅' }
+    ];
+
+    const QUICK_DONE_CHIPS = [
+      'Esvaziei a cuba da pia',
+      'Guardei louça seca',
+      'Lavei louça do almoço',
+      'Arrumei a cama',
+      'Coloquei roupa na máquina',
+      'Estendi roupa',
+      'Bebi água / me cuidei'
+    ];
+
+    const GUEST_MODE_TARGETS = [
+      'Sumir com a louça da pia',
+      'Juntar brinquedos e bagunça da sala no cesto',
+      'Dar uma geral rápida no banheiro social',
+      'Passar pano / tirar migalhas da mesa',
+      'Ajeitar almofadas e manta do sofá'
+    ];
+
+    const STORAGE_KEY = 'rotina_leve_mvp_v3';
+    const SOCIAL_TRACK_KEY = 'rotina_leve_social_daily_v1';
+
+    const MONITORED_SOCIAL_APPS = [
+      { id: 'instagram', name: 'Instagram', icon: '📸' },
+      { id: 'facebook', name: 'Facebook', icon: '📘' },
+      { id: 'tiktok', name: 'TikTok', icon: '🎵' }
+    ];
+
+    const NOT_USEFUL_SHAKE_MESSAGES = [
+      {
+        headline: '💛 Então feche o aplicativo agora e não se culpe de não ter terminado de assistir o que você estava vendo.',
+        subtext: 'O feed nunca tem fim mesmo. Você já retomou o controle do seu dia agora!'
+      },
+      {
+        headline: '🌿 Largue o celular por 2 minutinhos, respire fundo e beba um copo de água.',
+        subtext: 'Você não precisa ver o próximo vídeo para fechar com chave de ouro — parar agora já é uma vitória.'
+      },
+      {
+        headline: '✨ Que tal escolher só UMA microtarefa de 2 minutos agora para sentir aquela sensação boa de dever cumprido?',
+        subtext: 'Esvaziar a cuba ou guardar duas coisas já muda o clima da casa.'
+      },
+      {
+        headline: '🛑 Trava quebrada com sucesso! Bloqueia a tela agora antes que o dedo role sozinho de novo.',
+        subtext: 'O vídeo que parecia importante agora você nem vai lembrar daqui a 10 minutos.'
+      },
+      {
+        headline: '🤍 Seu tempo vale muito mais que esse rolo infinito. Fecha sem dó e vai descansar os olhos ou fazer algo por você.',
+        subtext: 'Sair no meio de um vídeo é o superpoder de quem manda no próprio tempo.'
+      },
+      {
+        headline: '⚡ Imagina que vai chegar visita em 10 minutos! Fecha o app agora e dá só uma olhada ao redor.',
+        subtext: 'Você vai agradecer a si mesma mais tarde por ter parado exatamente neste minuto.'
+      }
+    ];
+
+    function getTodayDateStr() {
+      const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function getOffsetDateStr(daysOffset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return 'Hoje';
+      const today = getTodayDateStr();
+      const tomorrow = getOffsetDateStr(1);
+      if (dateStr === today) return 'Hoje';
+      if (dateStr === tomorrow) return 'Amanhã';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      return `${parts[2]}/${parts[1]}`;
+    }
+
+    function getNowTimeStr() {
+      const d = new Date();
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    function getFutureTimeStr(minutesAhead) {
+      const d = new Date(Date.now() + minutesAhead * 60000);
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    let state = loadState();
+    let activeTab = 'hoje';
+    let selectedContextFilter = 'all';
+    let recentlyCompletedIds = new Set();
+    let dismissedSirenIds = new Set();
+    let triggeredAutoAlerts = new Set();
+
+    let lastUndoSnapshot = null;
+    let guestModeTimerInterval = null;
+    let silentTimerInterval = null;
+    let silentTimerSecondsElapsed = 0;
+    let silentTimerTargetSeconds = 0;
+    let silentTimerTitle = '';
+
+    function loadState() {
+      const today = getTodayDateStr();
+      const yesterday = getOffsetDateStr(-1);
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.tasks)) {
+            if (!parsed.historyByDate) parsed.historyByDate = { [yesterday]: 2 };
+            return parsed;
+          }
+        }
+      } catch (e) {}
+
+      return {
+        stars: 20,
+        contexts: [...DEFAULT_CONTEXTS],
+        historyByDate: { [yesterday]: 2 },
+        guestMode: { active: false, endTimeMs: 0 },
+        tasks: [
+          {
+            id: 't1',
+            title: 'Botar o feijão para cozinhar',
+            priority: 'urgent',
+            context: 'before_coffee',
+            date: today,
+            time: getFutureTimeStr(30),
+            done: false,
+            doneAt: null
+          },
+          {
+            id: 't2',
+            title: 'Esvaziar a cuba da pia (só o que já escorreu)',
+            priority: 'important',
+            context: 'after_coffee',
+            date: today,
+            time: '',
+            done: false,
+            doneAt: null
+          },
+          {
+            id: 't3',
+            title: 'Estender a roupa da máquina',
+            priority: 'normal',
+            context: 'helena_sleeping',
+            date: today,
+            time: '',
+            done: false,
+            doneAt: null
+          },
+          {
+            id: 't4',
+            title: 'Lavei a louça do café e limpei a bancada',
+            priority: 'normal',
+            context: 'before_coffee',
+            date: today,
+            time: '',
+            done: true,
+            doneAt: '08:15'
+          }
+        ]
+      };
+    }
+
+    function saveState() {
+      const today = getTodayDateStr();
+      const completedToday = state.tasks.filter(t => t.done && (!t.date || t.date === today)).length;
+      if (!state.historyByDate) state.historyByDate = {};
+      state.historyByDate[today] = completedToday;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+      syncAllNativeReminders();
+    }
+
+    function renderIcons() {
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+      }
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      ['hoje', 'meudia', 'ritmo'].forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const btnEl = document.getElementById(`tab-${t}`);
+        if (!viewEl || !btnEl) return;
+        if (t === tab) {
+          viewEl.classList.remove('hidden');
+          btnEl.classList.add('bg-white', 'text-stone-800', 'shadow-2xs', 'font-extrabold');
+          btnEl.classList.remove('text-stone-600', 'font-bold');
+        } else {
+          viewEl.classList.add('hidden');
+          btnEl.classList.remove('bg-white', 'text-stone-800', 'shadow-2xs', 'font-extrabold');
+          btnEl.classList.add('text-stone-600', 'font-bold');
+        }
+      });
+      renderAll();
+    }
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+      }
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+      }
+    }
+
+    function showToast(msg, enableUndo = false) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="pointer-events-auto bg-stone-900/95 backdrop-blur-md text-white text-xs font-bold pl-4 pr-2.5 py-2.5 rounded-2xl shadow-xl border border-stone-700 flex items-center gap-3 silent-popup-enter">
+          <span>${escapeHtml(msg)}</span>
+          ${enableUndo && lastUndoSnapshot ? `
+            <button type="button" onclick="undoLastAction()"
+              class="px-2.5 py-1 rounded-xl bg-amberwarm-500 hover:bg-amberwarm-600 text-stone-950 font-extrabold text-[11px] shrink-0 transition active:scale-95">
+              Desfazer
+            </button>
+          ` : ''}
+        </div>
+      `;
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        container.innerHTML = '';
+      }, enableUndo ? 5200 : 2800);
+    }
+
+    function saveUndoSnapshot(label) {
+      lastUndoSnapshot = {
+        label,
+        stars: state.stars,
+        tasks: JSON.parse(JSON.stringify(state.tasks))
+      };
+    }
+
+    window.undoLastAction = function() {
+      if (!lastUndoSnapshot) return;
+      state.stars = lastUndoSnapshot.stars;
+      state.tasks = lastUndoSnapshot.tasks;
+      recentlyCompletedIds.clear();
+      lastUndoSnapshot = null;
+      saveState();
+      renderAll();
+      const container = document.getElementById('toastContainer');
+      if (container) container.innerHTML = '';
+      showToast('↩️ Ação desfeita!', false);
+    };
+
+    function spawnConfetti(x, y) {
+      const colors = ['#4D8B6F', '#D96B43', '#F59E0B', '#10B981', '#F43F5E'];
+      for (let i = 0; i < 14; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = `${x}px`;
+        piece.style.top = `${y}px`;
+        piece.style.backgroundColor = colors[i % colors.length];
+        const angle = (Math.PI * 2 * i) / 14;
+        const dist = 36 + Math.random() * 44;
+        piece.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+        piece.style.setProperty('--dy', `${Math.sin(angle) * dist - 18}px`);
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 980);
+      }
+    }
+
+    function renderAll() {
+      renderHeaderStats();
+      renderGuestModeBanner();
+      renderSirenBanner();
+      renderContextFilterBar();
+      renderTaskList();
+      renderMeuDia();
+      renderRitmoETela();
+      renderIcons();
+    }
+
+    function renderHeaderStats() {
+      const today = getTodayDateStr();
+      const todayTasks = state.tasks.filter(t => !t.date || t.date === today);
+      const doneToday = todayTasks.filter(t => t.done).length;
+      const totalToday = todayTasks.length;
+
+      const pct = totalToday === 0 ? 0 : Math.round((doneToday / totalToday) * 100);
+      const level = Math.floor((state.stars || 0) / 50) + 1;
+
+      document.getElementById('levelBadge').textContent = `⭐ Nível ${level}`;
+      document.getElementById('progressLabel').textContent = `${doneToday} de ${totalToday} microtarefas hoje`;
+      document.getElementById('starsCounter').textContent = `${state.stars || 0} ⭐`;
+      document.getElementById('progressBarFill').style.width = `${pct}%`;
+
+      const pendingCount = state.tasks.filter(t => !t.done).length;
+      document.getElementById('tabHojeCount').textContent = pendingCount > 0 ? `(${pendingCount})` : '';
+      document.getElementById('tabMeuDiaCount').textContent = doneToday > 0 ? `(${doneToday})` : '';
+    }
+
+    function renderSirenBanner() {
+      const container = document.getElementById('sirenAlertContainer');
+      const urgentPending = state.tasks.filter(t => !t.done && t.priority === 'urgent' && !dismissedSirenIds.has(t.id));
+
+      if (urgentPending.length === 0) {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+        return;
+      }
+
+      const mainTask = urgentPending[0];
+      const extraCount = urgentPending.length - 1;
+      const timeLabel = mainTask.time ? ` às ${mainTask.time}` : '';
+
+      container.classList.remove('hidden');
+      container.innerHTML = `
+        <div class="siren-card-glow bg-gradient-to-r from-red-50 via-white to-red-50 border-2 border-red-500/60 rounded-2xl p-3.5 flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-red-100 border border-red-300 flex items-center justify-center shrink-0 siren-beacon">
+            <svg class="w-7 h-7 text-red-600" viewBox="0 0 24 24" fill="none">
+              <path d="M7 18V11C7 8.23858 9.23858 6 12 6C14.7614 6 17 8.23858 17 11V18" fill="currentColor" fill-opacity="0.28" stroke="currentColor" stroke-width="2.1"/>
+              <rect x="5" y="18" width="14" height="3" rx="1.5" fill="currentColor"/>
+              <path d="M12 2V3.6M4.5 5.5L5.8 6.8M19.5 5.5L18.2 6.8M2.5 12H4.2M19.8 12H21.5" stroke="#DC2626" stroke-width="2.1" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-red-700 bg-red-100 px-2 py-0.5 rounded-full">
+                Alerta silencioso
+              </span>
+              ${extraCount > 0 ? `<span class="text-[10px] font-bold text-red-600">+${extraCount}</span>` : ''}
+            </div>
+            <p class="text-xs font-extrabold text-stone-900 mt-1 leading-snug">
+              Você não pode esquecer de: <span class="text-red-700 underline decoration-red-300">${escapeHtml(mainTask.title)}${escapeHtml(timeLabel)}</span>
+            </p>
+          </div>
+          <div class="flex flex-col gap-1 shrink-0">
+            <button type="button" data-task-id="${mainTask.id}" onclick="triggerSilentPopupForTask(this.dataset.taskId)"
+              class="px-2.5 py-1 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[11px] font-extrabold shadow-2xs">
+              Ver aviso
+            </button>
+            <button type="button" data-task-id="${mainTask.id}" onclick="dismissSiren(this.dataset.taskId)"
+              class="px-2.5 py-1 rounded-xl bg-white border border-stone-200 text-stone-500 text-[10px] font-bold">
+              Já vi
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function triggerSilentPopupForTask(taskId) {
+      const task = state.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      const suffix = task.time ? ` às ${task.time}` : '';
+      showSilentNotificationBanner(`Você não pode esquecer de: ${task.title}${suffix}`);
+    }
+
+    function showSilentNotificationBanner(fullText) {
+      const banner = document.getElementById('silentNotificationBanner');
+      const textEl = document.getElementById('silentBannerText');
+      textEl.textContent = fullText;
+      banner.classList.remove('hidden');
+      clearTimeout(window._silentBannerTimer);
+      window._silentBannerTimer = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 6500);
+    }
+
+    function dismissSilentBanner() {
+      document.getElementById('silentNotificationBanner').classList.add('hidden');
+    }
+
+    function dismissSiren(id) {
+      dismissedSirenIds.add(id);
+      renderSirenBanner();
+    }
+
+    function renderContextFilterBar() {
+      const bar = document.getElementById('contextFilterBar');
+      bar.innerHTML = state.contexts.map(ctx => {
+        const isActive = selectedContextFilter === ctx.id;
+        return `
+          <button type="button" data-ctx="${ctx.id}" onclick="setContextFilter(this.dataset.ctx)"
+            class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1 border ${
+              isActive
+                ? 'bg-stone-800 text-white border-stone-800 shadow-2xs'
+                : 'bg-white text-stone-600 border-cream-300 hover:bg-cream-200/70'
+            }">
+            <span>${ctx.emoji}</span>
+            <span>${escapeHtml(ctx.label)}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function setContextFilter(ctxId) {
+      selectedContextFilter = ctxId;
+      renderContextFilterBar();
+      renderTaskList();
+    }
+
+    function renderTaskList() {
+      const container = document.getElementById('taskListContainer');
+      const today = getTodayDateStr();
+
+      let filtered = state.tasks.filter(t => {
+        if (selectedContextFilter === 'all') return true;
+        if (selectedContextFilter === 'tomorrow') return t.context === 'tomorrow' || (t.date && t.date > today);
+        return t.context === selectedContextFilter;
+      });
+
+      const priorityOrder = { urgent: 0, important: 1, normal: 2 };
+      filtered.sort((a, b) => {
+        if (a.done !== b.done) return a.done ? 1 : -1;
+        return (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white/80 rounded-3xl p-7 text-center border border-cream-300 space-y-2">
+            <div class="text-3xl">🌿</div>
+            <p class="font-display font-extrabold text-sm text-stone-700">Tudo leve por aqui!</p>
+            <p class="text-xs text-stone-500">Nenhuma microtarefa nesse momento. Aproveite para respirar ou anote algo pequeno abaixo.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(task => {
+        const ctxObj = state.contexts.find(c => c.id === task.context) || { label: 'Hoje', emoji: '✨' };
+        const dateLabel = formatDisplayDate(task.date);
+        const isJustDone = recentlyCompletedIds.has(task.id);
+
+        let borderClass = 'border-cream-300 bg-white';
+        let badgeHtml = '';
+        if (!task.done) {
+          if (task.priority === 'urgent') {
+            borderClass = 'border-red-300 bg-red-50/35';
+            badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 text-red-700">🚨 Urgente</span>`;
+          } else if (task.priority === 'important') {
+            borderClass = 'border-amberwarm-300/80 bg-amberwarm-50/30';
+            badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amberwarm-100 text-amberwarm-700">🟡 Importante</span>`;
+          }
+        } else {
+          borderClass = 'border-cream-300/70 bg-cream-100/70';
+        }
+
+        const pencilSvg = task.done ? `
+          <svg class="pencil-strike-svg ${isJustDone ? '' : 'pencil-done-static'}" viewBox="0 0 200 14" preserveAspectRatio="none">
+            <path class="pencil-path-1" d="M 1 8 Q 52 5, 102 7.5 T 199 6.5" fill="none" stroke="#57534E" stroke-width="2.1" stroke-linecap="round"/>
+            <path class="pencil-path-2" d="M 3 10.5 Q 68 8, 130 9.5 T 197 8.5" fill="none" stroke="#78716C" stroke-width="1.25" stroke-linecap="round" opacity="0.75"/>
+          </svg>
+        ` : '';
+
+        return `
+          <div class="rounded-2xl p-3.5 border ${borderClass} shadow-2xs transition-all">
+            <div class="flex items-start gap-3">
+              <button type="button" data-task-id="${task.id}" onclick="toggleTaskDone(this.dataset.taskId, event)"
+                aria-label="Marcar como concluída"
+                class="mt-0.5 w-6 h-6 rounded-xl border-2 flex items-center justify-center shrink-0 transition ${
+                  task.done
+                    ? 'bg-emerald-500 border-emerald-500 text-white check-pop'
+                    : 'border-stone-300 bg-white hover:border-sage-500'
+                }">
+                ${task.done ? '<i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>' : ''}
+              </button>
+
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-bold leading-snug ${task.done ? 'text-stone-400' : 'text-stone-800'}">
+                  <span class="pencil-strike-wrapper">
+                    <span>${escapeHtml(task.title)}</span>
+                    ${pencilSvg}
+                  </span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                  ${badgeHtml}
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cream-200/90 text-stone-600">
+                    ${ctxObj.emoji} ${escapeHtml(ctxObj.label)}
+                  </span>
+                  ${dateLabel !== 'Hoje' ? `
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      📅 ${dateLabel}
+                    </span>
+                  ` : ''}
+                  ${task.time ? `
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-stone-100 text-stone-700">
+                      ⏰ ${escapeHtml(task.time)}
+                    </span>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+
+            ${!task.done ? `
+              <div class="flex items-center justify-end gap-1.5 mt-2.5 pt-2 border-t border-cream-200/80">
+                <button type="button" data-task-id="${task.id}" onclick="startTimerForTask(this.dataset.taskId)"
+                  class="px-2.5 py-1 rounded-xl bg-sage-50 hover:bg-sage-100 text-sage-700 text-[11px] font-bold flex items-center gap-1 transition">
+                  <i data-lucide="timer" class="w-3 h-3"></i>
+                  <span>Focar</span>
+                </button>
+                <button type="button" data-task-id="${task.id}" onclick="openPostponeModal(this.dataset.taskId)"
+                  class="px-2.5 py-1 rounded-xl bg-amberwarm-50 hover:bg-amberwarm-100 text-amberwarm-700 text-[11px] font-extrabold flex items-center gap-1 transition">
+                  <i data-lucide="calendar-clock" class="w-3 h-3"></i>
+                  <span>Adiar</span>
+                </button>
+                <button type="button" data-task-id="${task.id}" onclick="openEditTaskModal(this.dataset.taskId)"
+                  class="p-1.5 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-cream-200/70 transition" title="Editar">
+                  <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" data-task-id="${task.id}" onclick="deleteTask(this.dataset.taskId)"
+                  class="p-1.5 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 transition" title="Excluir">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            ` : `
+              <div class="flex items-center justify-end gap-2 mt-2 pt-1.5 border-t border-cream-200/60">
+                <button type="button" data-task-id="${task.id}" onclick="toggleTaskDone(this.dataset.taskId, event)"
+                  class="px-2.5 py-1 rounded-xl bg-white hover:bg-amberwarm-50 text-stone-600 hover:text-amberwarm-700 border border-cream-300 text-[11px] font-bold flex items-center gap-1 transition">
+                  <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                  <span>Desfazer</span>
+                </button>
+                <button type="button" data-task-id="${task.id}" onclick="deleteTask(this.dataset.taskId)"
+                  class="p-1 rounded-lg text-stone-400 hover:text-red-600 transition" title="Remover">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            `}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleTaskDone(id, evt) {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+
+      saveUndoSnapshot(task.title);
+      task.done = !task.done;
+      const isGuestSprint = Boolean(state.guestMode && state.guestMode.active);
+      const rewardPts = isGuestSprint ? 15 : 10;
+
+      if (task.done) {
+        task.doneAt = getNowTimeStr();
+        task.date = getTodayDateStr();
+        recentlyCompletedIds.add(id);
+        state.stars = (state.stars || 0) + rewardPts;
+        if (evt && evt.clientX) spawnConfetti(evt.clientX, evt.clientY);
+        showToast(isGuestSprint
+          ? `🏃‍♀️⚡ +${rewardPts} ⭐ Sprint Visita! "${task.title}"`
+          : `✨ +${rewardPts} ⭐ "${task.title}"`, true);
+      } else {
+        task.doneAt = null;
+        recentlyCompletedIds.delete(id);
+        state.stars = Math.max(0, (state.stars || 0) - rewardPts);
+        showToast('Tarefa desmarcada e voltou para a lista.', false);
+      }
+
+      saveState();
+      renderAll();
+    }
+
+    function deleteTask(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+      saveUndoSnapshot(task.title);
+      state.tasks = state.tasks.filter(t => t.id !== id);
+      recentlyCompletedIds.delete(id);
+      saveState();
+      renderAll();
+      showToast(`Tarefa "${task.title}" removida.`, true);
+    }
+
+    function renderMeuDia() {
+      const today = getTodayDateStr();
+      const doneTodayList = state.tasks.filter(t => t.done && (!t.date || t.date === today));
+      const count = doneTodayList.length;
+
+      let message = 'Mesmo nos dias picados entre colo, mamã e casa, cada micropasso já tira um peso da sua frente.';
+      if (count === 0) {
+        message = 'Seu dia está começando agora. Quando fizer qualquer coisinha — mesmo guardar um copo — marque aqui!';
+      } else if (count >= 4) {
+        message = 'Olha quanta coisa você já resolveu hoje! Mesmo quando parece que o dia voou, você fez muito.';
+      }
+
+      document.getElementById('dailySummaryHero').innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-sage-100">Resumo acolhedor</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-white/15 text-xs font-extrabold">${count} feitas hoje</span>
+        </div>
+        <h2 class="font-display font-extrabold text-xl mt-2 leading-snug">
+          ${count === 0 ? 'Pronta para a primeira microvitória?' : `Você já riscou ${count} ${count === 1 ? 'coisa' : 'coisas'} hoje!`}
+        </h2>
+        <p class="text-xs text-sage-100/95 mt-2 leading-relaxed">${message}</p>
+      `;
+
+      document.getElementById('quickDoneChips').innerHTML = QUICK_DONE_CHIPS.map((chip, idx) => `
+        <button type="button" data-chip-idx="${idx}" onclick="registerInstantDoneByIndex(Number(this.dataset.chipIdx))"
+          class="px-2.5 py-1.5 rounded-xl bg-cream-100 hover:bg-sage-100 text-stone-700 hover:text-sage-800 border border-cream-300 text-[11px] font-bold transition active:scale-95">
+          + ${escapeHtml(chip)}
+        </button>
+      `).join('');
+
+      document.getElementById('completedTotalBadge').textContent = `${count} feitas`;
+
+      const listEl = document.getElementById('completedHistoryList');
+      if (count === 0) {
+        listEl.innerHTML = `
+          <div class="bg-white rounded-2xl p-5 text-center border border-cream-300 text-xs text-stone-500">
+            Ainda nenhuma tarefa riscada hoje. Use os botões acima ou marque uma tarefa na aba <b>Hoje</b>!
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = doneTodayList.map(t => `
+        <div class="bg-white rounded-2xl p-3 border border-cream-300/80 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-5 h-5 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
+              <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+            </span>
+            <span class="text-xs font-bold text-stone-600 truncate">
+              <span class="pencil-strike-wrapper">
+                <span>${escapeHtml(t.title)}</span>
+                <svg class="pencil-strike-svg pencil-done-static" viewBox="0 0 200 14" preserveAspectRatio="none">
+                  <path class="pencil-path-1" d="M 1 8 Q 52 5, 102 7.5 T 199 6.5" fill="none" stroke="#57534E" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </span>
+            </span>
+          </div>
+          <span class="text-[11px] font-bold text-stone-400 shrink-0">${t.doneAt || 'Hoje'}</span>
+        </div>
+      `).join('');
+    }
+
+    function registerInstantDoneByIndex(idx) {
+      const title = QUICK_DONE_CHIPS[idx];
+      if (!title) return;
+      saveUndoSnapshot(title);
+      const newTask = {
+        id: 't_' + Date.now(),
+        title,
+        priority: 'normal',
+        context: 'after_coffee',
+        date: getTodayDateStr(),
+        time: '',
+        done: true,
+        doneAt: getNowTimeStr()
+      };
+      state.tasks.unshift(newTask);
+      recentlyCompletedIds.add(newTask.id);
+      state.stars = (state.stars || 0) + 10;
+      saveState();
+      renderAll();
+      showToast(`✨ +10 ⭐ Registrado: "${title}"`, true);
+    }
+
+    function openQuickDoneModal() {
+      switchTab('meudia');
+      showToast('Toque em um atalho rápido ou adicione uma tarefa já feita!');
+    }
+
+    let socialDailyState = loadSocialDailyState();
+    let activeShakeAppId = 'instagram';
+    let lastNotUsefulMsgIndex = -1;
+
+    function loadSocialDailyState() {
+      const today = getTodayDateStr();
+      try {
+        const raw = localStorage.getItem(SOCIAL_TRACK_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.date === today) {
+            return parsed;
+          }
+        }
+      } catch (e) {}
+
+      return {
+        date: today,
+        selectedApp: 'instagram',
+        minutesByApp: { instagram: 0, facebook: 0, tiktok: 0 },
+        warned15ByApp: { instagram: false, facebook: false, tiktok: false },
+        shaken30ByApp: { instagram: false, facebook: false, tiktok: false },
+        usefulLog: []
+      };
+    }
+
+    function saveSocialDailyState() {
+      try {
+        localStorage.setItem(SOCIAL_TRACK_KEY, JSON.stringify(socialDailyState));
+      } catch (e) {}
+    }
+
+    function renderRitmoETela() {
+      const today = getTodayDateStr();
+      const yesterday = getOffsetDateStr(-1);
+      const doneToday = state.tasks.filter(t => t.done && (!t.date || t.date === today)).length;
+      const yesterdayCount = (state.historyByDate && typeof state.historyByDate[yesterday] === 'number')
+        ? state.historyByDate[yesterday]
+        : 2;
+      const diff = doneToday - yesterdayCount;
+
+      const compCard = document.getElementById('yesterdayComparisonCard');
+      if (diff > 0) {
+        compCard.innerHTML = `
+          <div class="bg-gradient-to-r from-emerald-500 to-sage-600 text-white rounded-3xl p-5 shadow-md space-y-1.5">
+            <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-extrabold uppercase tracking-wider">
+              🎉 Superou ontem!
+            </span>
+            <h3 class="font-display font-extrabold text-xl leading-snug">
+              Você fez ${diff} ${diff === 1 ? 'tarefa' : 'tarefas'} a mais que ontem!
+            </h3>
+            <p class="text-xs text-emerald-50">
+              Hoje: <b>${doneToday} concluídas</b> • Ontem: <b>${yesterdayCount} concluídas</b>. Cada micropasso conta!
+            </p>
+          </div>
+        `;
+      } else {
+        compCard.innerHTML = `
+          <div class="bg-white rounded-3xl p-4 border border-cream-300 shadow-2xs space-y-1.5">
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-stone-400">Ritmo diário</span>
+            <h3 class="font-display font-extrabold text-base text-stone-800">
+              Hoje: ${doneToday} ${doneToday === 1 ? 'tarefa feita' : 'tarefas feitas'} (Ontem: ${yesterdayCount})
+            </h3>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              Sem comparação pesada: quando você ultrapassar a marca de ontem, o destaque aparece aqui automaticamente.
+            </p>
+          </div>
+        `;
+      }
+
+      renderSocialGuardPanel();
+    }
+
+    function selectSocialApp(appId) {
+      socialDailyState.selectedApp = appId;
+      saveSocialDailyState();
+      renderSocialGuardPanel();
+    }
+
+    function renderSocialGuardPanel() {
+      const totalMins = Object.values(socialDailyState.minutesByApp || {}).reduce((acc, v) => acc + (v || 0), 0);
+      const totalBadge = document.getElementById('socialTotalTodayBadge');
+      if (totalBadge) totalBadge.textContent = `${totalMins} min hoje`;
+
+      MONITORED_SOCIAL_APPS.forEach(app => {
+        const btn = document.getElementById(`social-btn-${app.id}`);
+        if (!btn) return;
+        const mins = socialDailyState.minutesByApp[app.id] || 0;
+        const isSelected = socialDailyState.selectedApp === app.id;
+        btn.textContent = `${app.icon} ${app.name}${mins > 0 ? ` (${mins}m)` : ''}`;
+        if (isSelected) {
+          btn.className = 'social-app-btn py-2 px-2 rounded-xl text-xs font-extrabold bg-white text-stone-800 shadow-2xs transition';
+        } else {
+          btn.className = 'social-app-btn py-2 px-2 rounded-xl text-xs font-bold text-stone-500 hover:text-stone-700 transition';
+        }
+      });
+
+      const currentApp = MONITORED_SOCIAL_APPS.find(a => a.id === socialDailyState.selectedApp) || MONITORED_SOCIAL_APPS[0];
+      const usedMins = socialDailyState.minutesByApp[currentApp.id] || 0;
+      const pct = Math.min(100, Math.round((usedMins / 30) * 100));
+
+      let barColor = 'bg-sage-500';
+      let statusLabel = 'Dentro do limite leve';
+      if (usedMins >= 30) {
+        barColor = 'bg-red-500';
+        statusLabel = '🛑 Limite de 30 min atingido!';
+      } else if (usedMins >= 15) {
+        barColor = 'bg-amberwarm-500';
+        statusLabel = '⚠️ Já passou dos 15 min hoje';
+      }
+
+      const panel = document.getElementById('socialGuardPanel');
+      if (!panel) return;
+
+      panel.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold text-stone-500">Acumulado hoje no ${currentApp.name}</p>
+            <p class="font-display font-extrabold text-2xl text-stone-800">${usedMins} <span class="text-xs font-bold text-stone-500">/ 30 min</span></p>
+          </div>
+          <span class="text-[11px] font-extrabold px-2.5 py-1 rounded-xl ${
+            usedMins >= 30 ? 'bg-red-100 text-red-700' : usedMins >= 15 ? 'bg-amberwarm-100 text-amberwarm-700' : 'bg-sage-100 text-sage-700'
+          }">${statusLabel}</span>
+        </div>
+
+        <div class="relative w-full h-3 bg-cream-200 rounded-full overflow-hidden">
+          <div class="absolute top-0 bottom-0 left-1/2 w-0.5 bg-stone-400/60 z-10" title="Marco de 15 min"></div>
+          <div class="h-full ${barColor} rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-stone-400 -mt-1.5">
+          <span>0 min</span>
+          <span>15 min (aviso)</span>
+          <span>30 min (sacolejo)</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onclick="simulateAddSocialMinutes('${currentApp.id}', 15)"
+            class="py-2.5 px-3 rounded-xl bg-white hover:bg-amberwarm-50 border border-cream-300 text-stone-800 font-extrabold text-xs transition active:scale-95">
+            +15 min no ${currentApp.name}
+          </button>
+          <button type="button" onclick="openReelsShakeOverlay('${currentApp.id}')"
+            class="py-2.5 px-3 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-extrabold text-xs shadow-2xs transition active:scale-95">
+            Testar tela 30 min 🛑
+          </button>
+        </div>
+
+        ${usedMins > 0 ? `
+          <div class="flex justify-end">
+            <button type="button" onclick="resetSocialAppMinutes('${currentApp.id}')" class="text-[11px] font-bold text-stone-400 hover:text-stone-600 underline">
+              Zerar contagem do ${currentApp.name}
+            </button>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    window.simulateAddSocialMinutes = function(appId, addMins) {
+      const appObj = MONITORED_SOCIAL_APPS.find(a => a.id === appId) || MONITORED_SOCIAL_APPS[0];
+      const prevMins = socialDailyState.minutesByApp[appId] || 0;
+      const nextMins = prevMins + addMins;
+      socialDailyState.minutesByApp[appId] = nextMins;
+      saveSocialDailyState();
+      renderSocialGuardPanel();
+
+      if (prevMins < 15 && nextMins >= 15 && nextMins < 30) {
+        socialDailyState.warned15ByApp[appId] = true;
+        saveSocialDailyState();
+        showSilentNotificationBanner(`⏳ Você perdeu 15 minutos do seu dia no ${appObj.name}.`);
+      } else if (nextMins >= 30) {
+        socialDailyState.shaken30ByApp[appId] = true;
+        saveSocialDailyState();
+        openReelsShakeOverlay(appId);
+      }
+    };
+
+    window.resetSocialAppMinutes = function(appId) {
+      socialDailyState.minutesByApp[appId] = 0;
+      socialDailyState.warned15ByApp[appId] = false;
+      socialDailyState.shaken30ByApp[appId] = false;
+      saveSocialDailyState();
+      renderSocialGuardPanel();
+    };
+
+    window.openReelsShakeOverlay = function(appId) {
+      activeShakeAppId = appId || socialDailyState.selectedApp || 'instagram';
+      const appObj = MONITORED_SOCIAL_APPS.find(a => a.id === activeShakeAppId) || MONITORED_SOCIAL_APPS[0];
+      const mins = Math.max(30, socialDailyState.minutesByApp[activeShakeAppId] || 30);
+
+      document.getElementById('shakeOverlayBadge').textContent = `${mins} min acumulados hoje • ${appObj.name}`;
+      document.getElementById('shakeOverlayTitle').textContent = `Você já perdeu ${mins} minutos no ${appObj.name}.`;
+      document.getElementById('shakeOverlayButtons').classList.remove('hidden');
+      const feedbackEl = document.getElementById('shakeOverlayFeedback');
+      feedbackEl.classList.add('hidden');
+      feedbackEl.innerHTML = '';
+
+      openModal('reelsShakeOverlayModal');
+    };
+
+    window.answerReelsShake = function(wasUseful) {
+      const appObj = MONITORED_SOCIAL_APPS.find(a => a.id === activeShakeAppId) || MONITORED_SOCIAL_APPS[0];
+      const mins = Math.max(30, socialDailyState.minutesByApp[activeShakeAppId] || 30);
+      const btnsEl = document.getElementById('shakeOverlayButtons');
+      const feedbackEl = document.getElementById('shakeOverlayFeedback');
+
+      btnsEl.classList.add('hidden');
+      feedbackEl.classList.remove('hidden');
+
+      if (wasUseful) {
+        socialDailyState.usefulLog = socialDailyState.usefulLog || [];
+        socialDailyState.usefulLog.unshift({
+          app: appObj.name,
+          minutes: mins,
+          at: getNowTimeStr()
+        });
+        saveSocialDailyState();
+
+        feedbackEl.innerHTML = `
+          <div class="bg-sage-50 border border-sage-200 rounded-2xl p-3.5 text-left">
+            <p class="text-xs font-extrabold text-sage-800">✅ Marcado como tempo útil no seu histórico!</p>
+            <p class="text-[11px] text-stone-600 mt-1">Se você estava vendo uma receita, dica ou descansando de forma consciente, está tudo bem.</p>
+          </div>
+          <button type="button" onclick="closeModal('reelsShakeOverlayModal')"
+            class="w-full py-3 rounded-2xl bg-sage-600 text-white font-extrabold text-xs">
+            Continuar
+          </button>
+        `;
+      } else {
+        let nextIdx = Math.floor(Math.random() * NOT_USEFUL_SHAKE_MESSAGES.length);
+        if (NOT_USEFUL_SHAKE_MESSAGES.length > 1 && nextIdx === lastNotUsefulMsgIndex) {
+          nextIdx = (nextIdx + 1) % NOT_USEFUL_SHAKE_MESSAGES.length;
+        }
+        lastNotUsefulMsgIndex = nextIdx;
+        const chosenMsg = NOT_USEFUL_SHAKE_MESSAGES[nextIdx];
+
+        feedbackEl.innerHTML = `
+          <div class="bg-amberwarm-50 border border-amberwarm-300 rounded-2xl p-4 text-left">
+            <p class="text-xs font-extrabold text-stone-900 leading-relaxed">
+              ${escapeHtml(chosenMsg.headline)}
+            </p>
+            <p class="text-[11px] text-stone-600 mt-1.5 leading-relaxed">
+              ${escapeHtml(chosenMsg.subtext)}
+            </p>
+          </div>
+          <button type="button" onclick="closeModal('reelsShakeOverlayModal')"
+            class="w-full py-3 rounded-2xl bg-stone-900 text-white font-extrabold text-xs">
+            Fechei! Voltar pro meu dia
+          </button>
+        `;
+      }
+    };
+
+    function openGuestModeModal() {
+      const list = document.getElementById('guestModeChecklist');
+      list.innerHTML = GUEST_MODE_TARGETS.map((item, idx) => `
+        <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white border border-cream-300 cursor-pointer hover:border-terracotta-500/50">
+          <input type="checkbox" class="guest-target-cb w-4 h-4 accent-terracotta-500" value="${idx}" ${idx < 2 ? 'checked' : ''} />
+          <span class="text-xs font-bold text-stone-700">${escapeHtml(item)}</span>
+        </label>
+      `).join('');
+      openModal('guestModeModal');
+    }
+
+    function activateGuestMode() {
+      const checkedBoxes = Array.from(document.querySelectorAll('.guest-target-cb:checked'));
+      const today = getTodayDateStr();
+
+      checkedBoxes.forEach((cb, i) => {
+        const title = GUEST_MODE_TARGETS[Number(cb.value)];
+        if (!title) return;
+        const alreadyExists = state.tasks.some(t => !t.done && t.title.toLowerCase() === title.toLowerCase());
+        if (!alreadyExists) {
+          state.tasks.unshift({
+            id: 'guest_' + Date.now() + '_' + i,
+            title,
+            priority: 'urgent',
+            context: 'after_coffee',
+            date: today,
+            time: '',
+            done: false,
+            doneAt: null
+          });
+        }
+      });
+
+      state.guestMode = {
+        active: true,
+        endTimeMs: Date.now() + 30 * 60 * 1000
+      };
+      saveState();
+      closeModal('guestModeModal');
+      switchTab('hoje');
+      startGuestModeTicker();
+      showToast('🏃‍♀️ Modo Visita ativado! 30 min silenciosos valendo +15 ⭐ por tarefa!', false);
+    }
+
+    function stopGuestMode() {
+      state.guestMode = { active: false, endTimeMs: 0 };
+      clearInterval(guestModeTimerInterval);
+      saveState();
+      renderGuestModeBanner();
+      showToast('Sprint Modo Visita encerrado!', false);
+    }
+
+    function startGuestModeTicker() {
+      clearInterval(guestModeTimerInterval);
+      if (!state.guestMode || !state.guestMode.active) return;
+
+      guestModeTimerInterval = setInterval(() => {
+        if (!state.guestMode || !state.guestMode.active) {
+          clearInterval(guestModeTimerInterval);
+          return;
+        }
+        const remainingMs = state.guestMode.endTimeMs - Date.now();
+        if (remainingMs <= 0) {
+          stopGuestMode();
+          showSilentNotificationBanner('⏱️ Os 30 min do Modo Visita fecharam! Olha quanta coisa você já resolveu!');
+          return;
+        }
+        const clockEl = document.getElementById('guestModeClock');
+        if (clockEl) {
+          const totalSec = Math.ceil(remainingMs / 1000);
+          const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+          const s = String(totalSec % 60).padStart(2, '0');
+          clockEl.textContent = `${m}:${s}`;
+        }
+      }, 1000);
+    }
+
+    function renderGuestModeBanner() {
+      const banner = document.getElementById('guestModeActiveBanner');
+      if (!banner) return;
+      if (!state.guestMode || !state.guestMode.active || state.guestMode.endTimeMs <= Date.now()) {
+        banner.classList.add('hidden');
+        banner.innerHTML = '';
+        return;
+      }
+
+      const remainingSec = Math.max(0, Math.ceil((state.guestMode.endTimeMs - Date.now()) / 1000));
+      const m = String(Math.floor(remainingSec / 60)).padStart(2, '0');
+      const s = String(remainingSec % 60).padStart(2, '0');
+
+      banner.classList.remove('hidden');
+      banner.innerHTML = `
+        <div class="bg-gradient-to-r from-terracotta-500 to-amberwarm-600 text-white rounded-2xl p-3.5 shadow-md flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">🏃‍♀️</span>
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+                Modo Visita • +15 ⭐ por tarefa
+              </span>
+              <p class="text-xs font-extrabold mt-1">Sprint turbo silencioso valendo!</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="guestModeClock" class="font-mono font-extrabold text-lg bg-black/20 px-2.5 py-1 rounded-xl">${m}:${s}</span>
+            <button type="button" onclick="stopGuestMode()" class="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white" title="Encerrar sprint">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function populateContextSelect(selectId, selectedVal) {
+      const sel = document.getElementById(selectId);
+      sel.innerHTML = state.contexts
+        .filter(c => c.id !== 'all')
+        .map(c => `<option value="${c.id}" ${c.id === selectedVal ? 'selected' : ''}>${c.emoji} ${escapeHtml(c.label)}</option>`)
+        .join('');
+    }
+
+    function openNewTaskModal() {
+      document.getElementById('taskModalTitle').textContent = 'Nova microtarefa';
+      document.getElementById('editTaskId').value = '';
+      document.getElementById('taskTitleInput').value = '';
+      document.getElementById('taskDateInput').value = getTodayDateStr();
+      document.getElementById('taskTimeInput').value = '';
+      document.querySelector('input[name="priority"][value="important"]').checked = true;
+      populateContextSelect('taskContextSelect', selectedContextFilter !== 'all' ? selectedContextFilter : 'after_coffee');
+      openModal('taskModal');
+      setTimeout(() => document.getElementById('taskTitleInput').focus(), 120);
+    }
+
+    function openEditTaskModal(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+      document.getElementById('taskModalTitle').textContent = 'Editar microtarefa';
+      document.getElementById('editTaskId').value = task.id;
+      document.getElementById('taskTitleInput').value = task.title;
+      document.getElementById('taskDateInput').value = task.date || getTodayDateStr();
+      document.getElementById('taskTimeInput').value = task.time || '';
+      const radio = document.querySelector(`input[name="priority"][value="${task.priority}"]`);
+      if (radio) radio.checked = true;
+      populateContextSelect('taskContextSelect', task.context || 'after_coffee');
+      openModal('taskModal');
+    }
+
+    function saveTaskFromModal(e) {
+      e.preventDefault();
+      const id = document.getElementById('editTaskId').value;
+      const title = document.getElementById('taskTitleInput').value.trim();
+      if (!title) return;
+      const priority = document.querySelector('input[name="priority"]:checked')?.value || 'important';
+      const context = document.getElementById('taskContextSelect').value;
+      const date = document.getElementById('taskDateInput').value || getTodayDateStr();
+      const time = document.getElementById('taskTimeInput').value || '';
+
+      if (id) {
+        const existing = state.tasks.find(t => t.id === id);
+        if (existing) {
+          existing.title = title;
+          existing.priority = priority;
+          existing.context = context;
+          existing.date = date;
+          existing.time = time;
+        }
+        dismissedSirenIds.delete(id);
+      } else {
+        state.tasks.unshift({
+          id: 't_' + Date.now(),
+          title,
+          priority,
+          context,
+          date,
+          time,
+          done: false,
+          doneAt: null
+        });
+      }
+
+      saveState();
+      closeModal('taskModal');
+      renderAll();
+      showToast(time ? `Salvo! Aviso silencioso armado 30 min antes (${time}).` : 'Microtarefa adicionada!');
+    }
+
+    function openCustomContextModal() {
+      document.getElementById('customContextName').value = '';
+      openModal('customContextModal');
+    }
+
+    function saveCustomContext(e) {
+      e.preventDefault();
+      const label = document.getElementById('customContextName').value.trim();
+      if (!label) return;
+      const newId = 'ctx_' + Date.now();
+      state.contexts.push({ id: newId, label, emoji: '🌸' });
+      saveState();
+      closeModal('customContextModal');
+      populateContextSelect('taskContextSelect', newId);
+      renderContextFilterBar();
+    }
+
+    function openPostponeModal(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+      document.getElementById('postponeTaskId').value = task.id;
+      document.getElementById('postponeTaskTitle').textContent = task.title;
+      document.getElementById('postponeDateInput').value = task.date || getTodayDateStr();
+      document.getElementById('postponeTimeInput').value = task.time || '';
+      populateContextSelect('postponeContextSelect', task.context || 'afternoon');
+      openModal('postponeModal');
+    }
+
+    function quickPostponePreset(preset) {
+      const today = getTodayDateStr();
+      const tomorrow = getOffsetDateStr(1);
+
+      if (preset === 'afternoon') {
+        document.getElementById('postponeDateInput').value = today;
+        document.getElementById('postponeTimeInput').value = '15:00';
+        document.getElementById('postponeContextSelect').value = 'afternoon';
+      } else if (preset === 'helena_sleep') {
+        document.getElementById('postponeDateInput').value = today;
+        document.getElementById('postponeTimeInput').value = '';
+        document.getElementById('postponeContextSelect').value = 'helena_sleeping';
+      } else if (preset === 'tomorrow') {
+        document.getElementById('postponeDateInput').value = tomorrow;
+        document.getElementById('postponeContextSelect').value = 'tomorrow';
+      }
+      applyPostponeFromModal();
+    }
+
+    function applyPostponeFromModal() {
+      const id = document.getElementById('postponeTaskId').value;
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+
+      const newDate = document.getElementById('postponeDateInput').value || getTodayDateStr();
+      const newTime = document.getElementById('postponeTimeInput').value || '';
+      const newContext = document.getElementById('postponeContextSelect').value;
+
+      task.date = newDate;
+      task.time = newTime;
+      task.context = newContext;
+      dismissedSirenIds.delete(task.id);
+
+      saveState();
+      closeModal('postponeModal');
+      renderAll();
+
+      const whenLabel = `${formatDisplayDate(newDate)}${newTime ? ` às ${newTime}` : ''}`;
+      showToast(`📅 Adiado para ${whenLabel}!`);
+    }
+
+    function openTimerSetupModal() {
+      document.getElementById('timerTaskNameInput').value = '';
+      openModal('timerSetupModal');
+    }
+
+    function startTimerForTask(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+      document.getElementById('timerTaskNameInput').value = task.title;
+      openModal('timerSetupModal');
+    }
+
+    function startSilentTimer(targetMinutes) {
+      const inputTitle = document.getElementById('timerTaskNameInput').value.trim();
+      silentTimerTitle = inputTitle || 'Microtarefa focada';
+      silentTimerSecondsElapsed = 0;
+      silentTimerTargetSeconds = targetMinutes * 60;
+
+      closeModal('timerSetupModal');
+      document.getElementById('runningTimerTitle').textContent = silentTimerTitle;
+      document.getElementById('floatingTimerBar').classList.remove('hidden');
+      document.getElementById('miniTimerTaskTitle').textContent = silentTimerTitle;
+      updateSilentTimerUI();
+      openModal('timerRunningModal');
+
+      clearInterval(silentTimerInterval);
+      silentTimerInterval = setInterval(() => {
+        silentTimerSecondsElapsed++;
+        updateSilentTimerUI();
+      }, 1000);
+    }
+
+    function openTimerRunningModal() {
+      openModal('timerRunningModal');
+    }
+
+    function updateSilentTimerUI() {
+      const clockEl = document.getElementById('runningTimerClock');
+      const miniClockEl = document.getElementById('miniTimerClock');
+      const subEl = document.getElementById('runningTimerSubLabel');
+      const boxEl = document.getElementById('runningTimerDisplayBox');
+
+      let displayStr = '';
+      if (silentTimerTargetSeconds === 0) {
+        displayStr = formatMMSS(silentTimerSecondsElapsed);
+        subEl.textContent = 'Tempo livre • 100% silencioso';
+        clockEl.className = 'font-mono font-extrabold text-5xl text-stone-800 tracking-tight';
+        boxEl.className = 'py-6 rounded-3xl bg-white border border-cream-300';
+      } else {
+        const diff = silentTimerTargetSeconds - silentTimerSecondsElapsed;
+        if (diff >= 0) {
+          displayStr = formatMMSS(diff);
+          subEl.textContent = 'Contagem regressiva silenciosa';
+          clockEl.className = 'font-mono font-extrabold text-5xl text-sage-700 tracking-tight';
+          boxEl.className = 'py-6 rounded-3xl bg-sage-50/60 border border-sage-200';
+        } else {
+          displayStr = '-' + formatMMSS(Math.abs(diff));
+          subEl.textContent = 'Passou da meta (sem bipe, siga no seu ritmo)';
+          clockEl.className = 'font-mono font-extrabold text-5xl text-terracotta-600 tracking-tight';
+          boxEl.className = 'py-6 rounded-3xl bg-terracotta-50 border border-terracotta-500/30';
+        }
+      }
+
+      clockEl.textContent = displayStr;
+      miniClockEl.textContent = displayStr;
+    }
+
+    function cancelSilentTimer() {
+      clearInterval(silentTimerInterval);
+      document.getElementById('floatingTimerBar').classList.add('hidden');
+      closeModal('timerRunningModal');
+    }
+
+    function finishSilentTimer() {
+      clearInterval(silentTimerInterval);
+      document.getElementById('floatingTimerBar').classList.add('hidden');
+      closeModal('timerRunningModal');
+
+      const mins = Math.max(1, Math.round(silentTimerSecondsElapsed / 60));
+      const matched = state.tasks.find(t => !t.done && t.title.toLowerCase() === silentTimerTitle.toLowerCase());
+      if (matched) {
+        matched.done = true;
+        matched.doneAt = getNowTimeStr();
+        recentlyCompletedIds.add(matched.id);
+      } else {
+        const newId = 't_' + Date.now();
+        state.tasks.unshift({
+          id: newId,
+          title: `${silentTimerTitle} (${mins} min)`,
+          priority: 'normal',
+          context: 'after_coffee',
+          date: getTodayDateStr(),
+          time: '',
+          done: true,
+          doneAt: getNowTimeStr()
+        });
+        recentlyCompletedIds.add(newId);
+      }
+
+      state.stars = (state.stars || 0) + 15;
+      saveState();
+      renderAll();
+      showToast(`🎉 +15 ⭐ Concluído em ${mins} min (sem acordar ninguém)!`);
+    }
+
+    function formatMMSS(totalSecs) {
+      const m = String(Math.floor(totalSecs / 60)).padStart(2, '0');
+      const s = String(totalSecs % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, ''');
+    }
+
+    function checkUpcomingReminders() {
+      const today = getTodayDateStr();
+      const now = new Date();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+      state.tasks.forEach(task => {
+        if (task.done || !task.time || (task.date && task.date !== today)) return;
+        const [hh, mm] = task.time.split(':').map(Number);
+        if (Number.isNaN(hh) || Number.isNaN(mm)) return;
+        const taskMinutes = hh * 60 + mm;
+        const diff = taskMinutes - nowMinutes;
+
+        const alertKey = `${task.id}_${today}_${task.time}`;
+        if (diff > 0 && diff <= 30 && !triggeredAutoAlerts.has(alertKey)) {
+          triggeredAutoAlerts.add(alertKey);
+          showSilentNotificationBanner(`Você não pode esquecer de: ${task.title} às ${task.time}`);
+        }
+      });
+    }
+
+    async function initNativeAndroidBridge() {
+      try {
+        const cap = window.Capacitor;
+        if (!cap || !cap.Plugins || !cap.Plugins.LocalNotifications) return;
+        const LocalNotifications = cap.Plugins.LocalNotifications;
+        await LocalNotifications.requestPermissions();
+        await LocalNotifications.createChannel({
+          id: 'rotina_silenciosa',
+          name: 'Avisos Silenciosos (Sirene Visual)',
+          description: 'Notificações pop-up sem som alto para não acordar o bebê',
+          importance: 4,
+          sound: null,
+          vibration: false
+        });
+      } catch (e) {}
+    }
+
+    async function syncAllNativeReminders() {
+      try {
+        const cap = window.Capacitor;
+        if (!cap || !cap.Plugins || !cap.Plugins.LocalNotifications) return;
+        const LocalNotifications = cap.Plugins.LocalNotifications;
+
+        const pending = await LocalNotifications.getPending();
+        if (pending && Array.isArray(pending.notifications) && pending.notifications.length > 0) {
+          await LocalNotifications.cancel({ notifications: pending.notifications });
+        }
+
+        const nowMs = Date.now();
+        const toSchedule = [];
+
+        state.tasks.forEach((task, idx) => {
+          if (task.done || !task.time) return;
+          const dateStr = task.date || getTodayDateStr();
+          const [yyyy, mo, dd] = dateStr.split('-').map(Number);
+          const [hh, mm] = task.time.split(':').map(Number);
+          if (!yyyy || Number.isNaN(hh)) return;
+
+          const exactDate = new Date(yyyy, mo - 1, dd, hh, mm, 0);
+          const thirtyMinBefore = new Date(exactDate.getTime() - 30 * 60 * 1000);
+
+          if (thirtyMinBefore.getTime() > nowMs) {
+            toSchedule.push({
+              id: 1000 + idx,
+              title: '🚨 Você não pode esquecer!',
+              body: `Você não pode esquecer de: ${task.title} às ${task.time}`,
+              channelId: 'rotina_silenciosa',
+              schedule: { at: thirtyMinBefore, allowWhileIdle: true }
+            });
+          }
+        });
+
+        if (toSchedule.length > 0) {
+          await LocalNotifications.schedule({ notifications: toSchedule });
+        }
+      } catch (e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+      startGuestModeTicker();
+      checkUpcomingReminders();
+      setInterval(checkUpcomingReminders, 30000);
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          ['taskModal', 'postponeModal', 'timerSetupModal', 'timerRunningModal', 'customContextModal', 'guestModeModal', 'reelsShakeOverlayModal', 'cloudAccountModal']
+            .forEach(closeModal);
+        }
+      });
+
+      const originalSetItem = localStorage.setItem.bind(localStorage);
+      localStorage.setItem = function(key, value) {
+        originalSetItem(key, value);
+        if ((key === STORAGE_KEY || key === SOCIAL_TRACK_KEY) && typeof window.scheduleCloudBackup === 'function') {
+          window.scheduleCloudBackup();
+        }
+      };
+
+      window.reloadAppFromStorage = function() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (saved && typeof saved === 'object') {
+            Object.assign(state, saved);
+            if (typeof renderAll === 'function') renderAll();
+          }
+        } catch (e) {}
+      };
+
+      initNativeAndroidBridge();
+      syncAllNativeReminders();
+    });
+  </script>
+</body>
+</html>
